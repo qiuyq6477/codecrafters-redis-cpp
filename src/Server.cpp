@@ -21,7 +21,7 @@ int get_length(char *p)
       len = (len*10)+(*p - '0');
       p++;
   }
-  p++;
+  p+=2;
   return len;
 }
 
@@ -30,26 +30,28 @@ void parse(int client_socket, char *p)
 {
   // *2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n
   // *1\r\n$4\r\nPING\r\n
-  p++;
-  int num = get_length(p);
-  std::cout << "num:" << num << std::endl;
-  // for(int i =0; i < num; i++)
-  // {
     p++;
-    int len = get_length(p);
+  int num = get_length(&p);
+  std::cout << "num:" << num << std::endl;
+//   for(int i =0; i < num; i++)
+//   {
+    p++;
+    int len = get_length(&p);
+    std::cout << "len1:" << len << std::endl;
     if(memcmp(p, "ECHO", len) == 0)
     {
       p += len + 2;
       p++;
-      len = get_length(p);
-      std::cout << "len:" << len << std::endl;
-      char buffer[len + 3] = {'+'};
+      len = get_length(&p);
+      std::cout << "len2:" << len << std::endl;
+      char *buffer = new char[len + 3];
+      buffer[0] = '+';
       memcpy(buffer+1, p, len + 2);
-      send(client_socket, buffer, len + 3, 0);
+      //send(client_socket, buffer, len + 3, 0);
     }
     else if(memcmp(p, "PING", 4) == 0)
     {
-      send(client_socket, "+PONG\r\n", 7, 0);
+      //send(client_socket, "+PONG\r\n", 7, 0);
     }
   // }
 }
