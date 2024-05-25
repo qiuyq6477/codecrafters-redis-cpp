@@ -7,6 +7,30 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <thread>
+
+const int BUFFER_SIZE = 1024;
+
+
+void handle_client(int client_socket) {
+    char buffer[BUFFER_SIZE];
+    int bytes_received;
+    
+    while ((bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0)) > 0) {
+      buffer[bytes_received] = '\0';
+      std::cout << "Received: " << buffer << std::endl;
+      
+      
+      char buffer[1024] = {0};
+      while(true){
+        if (memcmp(buffer, "*1\r\n$4\r\nPING\r\n", 15) == 0) {
+            send(client_socket, "+PONG\r\n", 7, 0);
+        }
+      }
+    }
+    close(client_socket);
+    std::cout << "Client disconnected." << std::endl;
+}
 
 int main(int argc, char **argv) {
   // You can use print statements as follows for debugging, they'll be visible when running tests.
@@ -44,21 +68,39 @@ int main(int argc, char **argv) {
     return 1;
   }
   
-  struct sockaddr_in client_addr;
-  int client_addr_len = sizeof(client_addr);
+  // struct sockaddr_in client_addr;
+  // int client_addr_len = sizeof(client_addr);
   
-  std::cout << "Waiting for a client to connect...\n";
+  // std::cout << "Waiting for a client to connect...\n";
   
-  int client_fd;
-  client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
-  std::cout << "Client connected\n";
+  // int client_fd;
+  // client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+  // std::cout << "Client connected\n";
+
+  // threads.emplace_back(std::thread(handle_client, client_fd));
+
+  while (true) {
+      int client_socket;
+      struct sockaddr_in client_addr;
+      socklen_t client_addr_len = sizeof(client_addr);
+
+      // Accept a new connection
+      if ((client_socket = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len)) < 0) {
+          perror("Accept failed");
+          continue;
+      }
+
+      std::cout << "New client connected." << std::endl;
+
+      // Create a new thread to handle the client
+      threads.emplace_back(std::thread(handle_client, client_socket));
+  }
   
-  char buffer[1024] = {0};
-  while(true){
-    read(client_fd, buffer, 1024);
-    if (memcmp(buffer, "*1\r\n$4\r\nPING\r\n", 15) == 0) {
-        send(client_fd, "+PONG\r\n", 7, 0);
-    }
+  // Join threads
+  for (auto &thread : threads) {
+      if (thread.joinable()) {
+          thread.join();
+      }
   }
 
   close(server_fd);
