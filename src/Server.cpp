@@ -40,6 +40,7 @@ void parse(int client_socket, char *p)
     if(memcmp(p, "ECHO", len) == 0)
     {
       p += len + 2;
+      p++;
       len = get_length(p);
       char buffer[len + 3] = {'+'};
       memcpy(buffer+1, p, len + 2);
