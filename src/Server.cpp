@@ -200,8 +200,9 @@ void parse(int client_socket, char *p, Dictionary *dict)
     memcpy(buffer1, p, len);
 
     char *ret = search(dict, buffer1);
+    std::cout<<ret<<std::endl;
     int size = strlen(ret);
-    char *buffer2 = new char[size + 3];
+    char *buffer2 = new char[1024];
     sprintf(buffer2, "$%d\r\n%s\r\n", size, ret);
     send(client_socket, buffer2, size+3, 0);
   }
