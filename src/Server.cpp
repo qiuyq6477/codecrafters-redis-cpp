@@ -54,10 +54,11 @@ int main(int argc, char **argv) {
   std::cout << "Client connected\n";
   
   char buffer[1024] = {0};
+  read(client, buffer, 1024);
   while(true){
-    read(client, buffer, 15);
     if (memcmp(buffer, "*1\r\n$4\r\nping\r\n", 15) == 0) {
         send(client, "+PONG\r\n", 7, 0);
+        buffer += 15;
     }else
     {
       break;
