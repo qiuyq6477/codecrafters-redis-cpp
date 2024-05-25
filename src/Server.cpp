@@ -32,7 +32,7 @@ void parse(int client_socket, char *p)
   // *1\r\n$4\r\nPING\r\n
   p++;
   int num = get_length(p);
-  
+  std::cout << "num:" << num << std::endl;
   for(int i =0; i < num; i++)
   {
     p++;
@@ -42,7 +42,7 @@ void parse(int client_socket, char *p)
       p += len + 2;
       p++;
       len = get_length(p);
-      printf("length:%d\n", len);
+      std::cout << "len:" << len << std::endl;
       char buffer[len + 3] = {'+'};
       memcpy(buffer+1, p, len + 2);
       send(client_socket, buffer, len + 3, 0);
