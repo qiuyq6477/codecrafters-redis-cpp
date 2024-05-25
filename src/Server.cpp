@@ -33,8 +33,8 @@ void parse(int client_socket, char *p)
   p++;
   int num = get_length(p);
   std::cout << "num:" << num << std::endl;
-  for(int i =0; i < num; i++)
-  {
+  // for(int i =0; i < num; i++)
+  // {
     p++;
     int len = get_length(p);
     if(memcmp(p, "ECHO", len) == 0)
@@ -51,7 +51,7 @@ void parse(int client_socket, char *p)
     {
       send(client_socket, "+PONG\r\n", 7, 0);
     }
-  }
+  // }
 }
 
 void handle_client(int client_socket) {
