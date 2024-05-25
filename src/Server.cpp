@@ -26,7 +26,7 @@ int get_length(char *p)
 }
 
 
-void parse(char *p)
+void parse(int client_socket, char *p)
 {
   // *2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n
   // *1\r\n$4\r\nPING\r\n
@@ -61,7 +61,7 @@ void handle_client(int client_socket) {
     if(bytes_received <= 0){
       break;
     }
-    parse(buffer);
+    parse(client_socket, buffer);
   }
   close(client_socket);
   std::cout << "Client disconnected." << std::endl;
