@@ -204,7 +204,7 @@ void parse(int client_socket, char *p, Dictionary *dict)
     int size = strlen(ret);
     char *buffer2 = new char[1024];
     sprintf(buffer2, "$%d\r\n%s\r\n", size, ret);
-    send(client_socket, buffer2, size+3, 0);
+    send(client_socket, buffer2, 1024, 0);
   }
 }
 
