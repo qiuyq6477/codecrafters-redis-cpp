@@ -54,6 +54,14 @@ int main(int argc, char **argv) {
   std::cout << "Client connected\n";
   send(client_fd, "+PONG\r\n", 7, 0);
   
+  char buffer[1024] = {0};
+  while(true){
+    read(client, buffer, 1024);
+    if (memcmp(buffer, "*1\r\n$4\r\nping\r\n", 15) == 0) {
+        send(client, "+PONG\r\n", 7, 0);
+    }
+  }
+
   close(server_fd);
 
   return 0;
