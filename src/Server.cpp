@@ -12,7 +12,125 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-const int BUFFER_SIZE = 1024;
+
+#pragma region Dict
+
+#define TABLE_SIZE 100
+
+typedef struct KeyValue {
+    char *key;
+    char *value;
+} KeyValue;
+
+typedef struct HashTableEntry {
+    KeyValue *pair;
+    struct HashTableEntry *next;
+} HashTableEntry;
+
+typedef struct Dictionary {
+    HashTableEntry **table;
+} Dictionary;
+
+
+unsigned long hash_function(const char *str) {
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *str++)) {
+        hash = ((hash << 5) + hash) + c;
+    }
+    return hash % TABLE_SIZE;
+}
+
+
+void insert(Dictionary *dict, const char *key, const char *value) {
+    unsigned long hash = hash_function(key);
+    HashTableEntry *entry = dict->table[hash];
+    
+    // Update value if key already exists
+    while (entry != NULL) {
+        if (strcmp(entry->pair->key, key) == 0) {
+            free(entry->pair->value);
+            entry->pair->value = strdup(value);
+            return;
+        }
+        entry = entry->next;
+    }
+
+    // Insert new key-value pair
+    KeyValue *new_pair = (KeyValue *)malloc(sizeof(KeyValue));
+    new_pair->key = strdup(key);
+    new_pair->value = strdup(value);
+
+    HashTableEntry *new_entry = (HashTableEntry *)malloc(sizeof(HashTableEntry));
+    new_entry->pair = new_pair;
+    new_entry->next = dict->table[hash];
+    dict->table[hash] = new_entry;
+}
+
+char *search(Dictionary *dict, const char *key) {
+    unsigned long hash = hash_function(key);
+    HashTableEntry *entry = dict->table[hash];
+
+    while (entry != NULL) {
+        if (strcmp(entry->pair->key, key) == 0) {
+            return entry->pair->value;
+        }
+        entry = entry->next;
+    }
+    return NULL;
+}
+
+void delete_key(Dictionary *dict, const char *key) {
+    unsigned long hash = hash_function(key);
+    HashTableEntry *entry = dict->table[hash];
+    HashTableEntry *prev = NULL;
+
+    while (entry != NULL) {
+        if (strcmp(entry->pair->key, key) == 0) {
+            if (prev == NULL) {
+                dict->table[hash] = entry->next;
+            } else {
+                prev->next = entry->next;
+            }
+            free(entry->pair->key);
+            free(entry->pair->value);
+            free(entry->pair);
+            free(entry);
+            return;
+        }
+        prev = entry;
+        entry = entry->next;
+    }
+}
+
+Dictionary *create_dictionary() {
+    Dictionary *dict = (Dictionary *)malloc(sizeof(Dictionary));
+    dict->table = (HashTableEntry **)malloc(TABLE_SIZE * sizeof(HashTableEntry *));
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        dict->table[i] = NULL;
+    }
+    return dict;
+}
+
+void destroy_dictionary(Dictionary *dict) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        HashTableEntry *entry = dict->table[i];
+        while (entry != NULL) {
+            HashTableEntry *temp = entry;
+            entry = entry->next;
+            free(temp->pair->key);
+            free(temp->pair->value);
+            free(temp->pair);
+            free(temp);
+        }
+    }
+    free(dict->table);
+    free(dict);
+}
+
+
+#pragma endregion
+
 
 int get_length(char **p1)
 {
@@ -27,47 +145,79 @@ int get_length(char **p1)
   return len;
 }
 
-
-void parse(int client_socket, char *p)
+void parse(int client_socket, char *p, Dictionary *dict)
 {
   // *2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n
   // *1\r\n$4\r\nPING\r\n
-    p++;
+  p++;
   int num = get_length(&p);
   std::cout << "num:" << num << std::endl;
-//   for(int i =0; i < num; i++)
-//   {
+  p++;
+  int len = get_length(&p);
+  std::cout << "len1:" << len << std::endl;
+  if(memcmp(p, "ECHO", len) == 0)
+  {
+    p += len + 2;
     p++;
-    int len = get_length(&p);
-    std::cout << "len1:" << len << std::endl;
-    if(memcmp(p, "ECHO", len) == 0)
-    {
-      p += len + 2;
-      p++;
-      len = get_length(&p);
-      std::cout << "len2:" << len << std::endl;
-      char *buffer = new char[len + 3];
-      buffer[0] = '+';
-      memcpy(buffer+1, p, len + 2);
-      send(client_socket, buffer, len + 3, 0);
-    }
-    else if(memcmp(p, "PING", 4) == 0)
-    {
-      send(client_socket, "+PONG\r\n", 7, 0);
-    }
-  // }
+    len = get_length(&p);
+    std::cout << "len2:" << len << std::endl;
+    char *buffer = new char[len + 3];
+    buffer[0] = '+';
+    memcpy(buffer+1, p, len + 2);
+    send(client_socket, buffer, len + 3, 0);
+  }
+  else if(memcmp(p, "PING", 4) == 0)
+  {
+    send(client_socket, "+PONG\r\n", 7, 0);
+  }
+  else if(memcpy(p, "SET") == 0)
+  {
+    p += len + 2;
+    p++;
+    len = get_length(&p);
+    std::cout << "len2:" << len << std::endl;
+    char *buffer1 = new char[len];
+    memcpy(buffer1, p, len);
+    p+=len + 2 + 1;
+
+    len = get_length(&p);
+    std::cout << "len3:" << len << std::endl;
+    char *buffer2 = new char[len];
+    memcpy(buffer2, p, len);
+
+    insert(dict, buffer1, buffer2);
+
+    send(client_socket, "+OK\r\n", 5, 0);
+    
+  }
+  else if(memcpy(p, "GET") == 0)
+  {
+    p += len + 2;
+    p++;
+    len = get_length(&p);
+    std::cout << "len2:" << len << std::endl;
+    char *buffer1 = new char[len];
+    memcpy(buffer1, p, len);
+
+    char *ret = search(dict, buffer1);
+    int size = strlen(ret);
+    char *buffer2 = new char[size + 3];
+    sprintf(buffer2, "$%d\r\n%s\r\n", size, ret);
+    send(client_socket, buffer2, size+3, 0);
+  }
 }
 
 void handle_client(int client_socket) {
   char buffer[BUFFER_SIZE];
   int bytes_received;
+  Dictionary *dict = create_dictionary();
   
   while(true){
     bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0);
     if(bytes_received <= 0){
       break;
     }
-    parse(client_socket, buffer);
+    parse(client_socket, buffer, dict);
   }
   close(client_socket);
   std::cout << "Client disconnected." << std::endl;
