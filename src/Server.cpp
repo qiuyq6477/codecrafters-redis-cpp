@@ -42,6 +42,7 @@ void parse(int client_socket, char *p)
       p += len + 2;
       p++;
       len = get_length(p);
+      printf("length:%d\n", len);
       char buffer[len + 3] = {'+'};
       memcpy(buffer+1, p, len + 2);
       send(client_socket, buffer, len + 3, 0);
