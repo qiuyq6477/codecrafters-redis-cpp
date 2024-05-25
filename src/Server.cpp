@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
   
   char buffer[1024] = {0};
   while(true){
-    read(client, buffer, 1024);
+    read(client, buffer, 15);
     if (memcmp(buffer, "*1\r\n$4\r\nping\r\n", 15) == 0) {
         send(client, "+PONG\r\n", 7, 0);
     }else
