@@ -1,4 +1,8 @@
 #include <iostream>
+#include <thread>
+#include <vector>
+#include <netinet/in.h>
+
 #include <cstdlib>
 #include <string>
 #include <cstring>
@@ -7,7 +11,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <thread>
 
 const int BUFFER_SIZE = 1024;
 
@@ -68,17 +71,6 @@ int main(int argc, char **argv) {
     return 1;
   }
   
-  // struct sockaddr_in client_addr;
-  // int client_addr_len = sizeof(client_addr);
-  
-  // std::cout << "Waiting for a client to connect...\n";
-  
-  // int client_fd;
-  // client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
-  // std::cout << "Client connected\n";
-
-  // threads.emplace_back(std::thread(handle_client, client_fd));
-
   while (true) {
       int client_socket;
       struct sockaddr_in client_addr;
