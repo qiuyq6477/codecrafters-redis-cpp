@@ -71,6 +71,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   
+  std::vector<std::thread> threads;
   while (true) {
       int client_socket;
       struct sockaddr_in client_addr;
