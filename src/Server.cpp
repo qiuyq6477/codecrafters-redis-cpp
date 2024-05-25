@@ -20,7 +20,6 @@ void handle_client(int client_socket) {
     int bytes_received;
     
     while ((bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0)) > 0) {
-      buffer[bytes_received] = '\0';
       while(true){
         if (memcmp(buffer, "*1\r\n$4\r\nPING\r\n", 15) == 0) {
             send(client_socket, "+PONG\r\n", 7, 0);
