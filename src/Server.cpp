@@ -20,7 +20,7 @@ void handle_client(int client_socket) {
   int bytes_received;
   
   while(true){
-    bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0)
+    bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0);
     if(bytes_received <= 0){
       break;
     }
