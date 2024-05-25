@@ -14,6 +14,43 @@
 
 const int BUFFER_SIZE = 1024;
 
+int get_length(char *p)
+{
+  int len = 0;
+  while(*p != '\r') {
+      len = (len*10)+(*p - '0');
+      p++;
+  }
+  p++;
+  return len;
+}
+
+
+void parse(char *p)
+{
+  // *2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n
+  // *1\r\n$4\r\nPING\r\n
+  p++;
+  int num = get_length(p);
+  
+  for(int i =0; i < num; i++)
+  {
+    p++;
+    int len = get_length(p);
+    if(memcmp(p, "ECHO", len) == 0)
+    {
+      p += len + 2;
+      len = get_length(p);
+      char buffer[len + 3] = {'+'};
+      memcpy(buffer+1, p, len + 2);
+      send(client_socket, buffer, len + 3, 0);
+    }
+    else if(memcmp(p, "PING", 4) == 0)
+    {
+      send(client_socket, "+PONG\r\n", 7, 0);
+    }
+  }
+}
 
 void handle_client(int client_socket) {
   char buffer[BUFFER_SIZE];
@@ -24,9 +61,7 @@ void handle_client(int client_socket) {
     if(bytes_received <= 0){
       break;
     }
-    if (memcmp(buffer, "*1\r\n$4\r\nPING\r\n", 15) == 0) {
-      send(client_socket, "+PONG\r\n", 7, 0);
-    }
+    parse(buffer);
   }
   close(client_socket);
   std::cout << "Client disconnected." << std::endl;
