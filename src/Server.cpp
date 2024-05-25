@@ -170,7 +170,7 @@ void parse(int client_socket, char *p, Dictionary *dict)
   {
     send(client_socket, "+PONG\r\n", 7, 0);
   }
-  else if(memcpy(p, "SET") == 0)
+  else if(memcmp(p, "SET") == 0)
   {
     p += len + 2;
     p++;
@@ -190,7 +190,7 @@ void parse(int client_socket, char *p, Dictionary *dict)
     send(client_socket, "+OK\r\n", 5, 0);
     
   }
-  else if(memcpy(p, "GET") == 0)
+  else if(memcmp(p, "GET") == 0)
   {
     p += len + 2;
     p++;
