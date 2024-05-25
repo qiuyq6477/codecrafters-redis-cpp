@@ -14,14 +14,16 @@
 
 const int BUFFER_SIZE = 1024;
 
-int get_length(char *p)
+int get_length(char **p1)
 {
+  char *p = *p1;
   int len = 0;
   while(*p != '\r') {
       len = (len*10)+(*p - '0');
       p++;
   }
   p+=2;
+  *p1 = p;
   return len;
 }
 
@@ -47,11 +49,11 @@ void parse(int client_socket, char *p)
       char *buffer = new char[len + 3];
       buffer[0] = '+';
       memcpy(buffer+1, p, len + 2);
-      //send(client_socket, buffer, len + 3, 0);
+      send(client_socket, buffer, len + 3, 0);
     }
     else if(memcmp(p, "PING", 4) == 0)
     {
-      //send(client_socket, "+PONG\r\n", 7, 0);
+      send(client_socket, "+PONG\r\n", 7, 0);
     }
   // }
 }
